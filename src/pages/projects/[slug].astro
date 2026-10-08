@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectStatus from '../../components/ProjectStatus.astro';
 import { CATEGORY_BY_KEY, STATUS_BY_KEY } from '../../lib/ecosystem';
+import { withBase } from '../../lib/paths';
 import { SITE } from '../../lib/site';
 import { graph, personNode, softwareSourceCodeNode, breadcrumbNode } from '../../lib/schema';
 
@@ -111,7 +112,7 @@ const jsonLd = graph([
       )
     }
 
-    <p class="project__back"><a href="/projects/">← All projects</a></p>
+    <p class="project__back"><a href={withBase('/projects/')}>← All projects</a></p>
   </article>
 </BaseLayout>
 

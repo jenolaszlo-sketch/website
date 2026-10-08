@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageIntro from '../../components/PageIntro.astro';
 import { formatDate } from '../../lib/format';
+import { withBase } from '../../lib/paths';
 
 const milestones = (
   await getCollection('milestones', ({ data }) => !data.draft)
@@ -61,7 +62,7 @@ const years = [...byYear.keys()].sort((a, b) => Number(b) - Number(a));
                       <ul class="milestone__projects">
                         {milestone.data.projects.map((slug) => (
                           <li>
-                            <a href={`/projects/${slug}/`}>
+                            <a href={withBase(`/projects/${slug}/`)}>
                               {projectNames.get(slug) ?? slug}
                             </a>
                           </li>

@@ -8,6 +8,7 @@ import {
   CATEGORIES,
   SUPPORTING_PRIMITIVES,
 } from '../../lib/ecosystem';
+import { withBase } from '../../lib/paths';
 
 const projects = (
   await getCollection('projects', ({ data }) => !data.draft)
@@ -74,7 +75,7 @@ const groups = CATEGORIES.filter((category) => grouped.has(category.key)).map(
           SUPPORTING_PRIMITIVES.map((primitive) => (
             <li>
               <h3 class="supporting__name">
-                <a href={primitive.href}>{primitive.label}</a>
+                <a href={withBase(primitive.href)}>{primitive.label}</a>
               </h3>
               <p class="supporting__note">{primitive.note}</p>
             </li>

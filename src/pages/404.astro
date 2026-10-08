@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/paths';
 ---
 
 <BaseLayout
@@ -13,8 +14,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       The page may have moved, or the link may be incorrect.
     </p>
     <div class="button-row">
-      <a class="button button--primary" href="/">Back to home</a>
-      <a class="button" href="/projects/">View projects</a>
+      <a class="button button--primary" href={withBase('/')}>Back to home</a>
+      <a class="button" href={withBase('/projects/')}>View projects</a>
     </div>
   </section>
 </BaseLayout>

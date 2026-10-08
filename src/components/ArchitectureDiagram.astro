@@ -1,5 +1,6 @@
 ---
 import { RUNTIME_LAYERS } from '../lib/ecosystem';
+import { withBase } from '../lib/paths';
 ---
 
 <ol class="layers">
@@ -23,7 +24,7 @@ import { RUNTIME_LAYERS } from '../lib/ecosystem';
             <ul class="layer__projects">
               {layer.projects.map((p) => (
                 <li>
-                  <a href={p.href}>{p.label}</a>
+                  <a href={withBase(p.href)}>{p.label}</a>
                 </li>
               ))}
             </ul>

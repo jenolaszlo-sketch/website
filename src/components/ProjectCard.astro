@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { CATEGORY_BY_KEY } from '../lib/ecosystem';
+import { withBase } from '../lib/paths';
 import ProjectStatus from './ProjectStatus.astro';
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 
 const { project, showCategory = true } = Astro.props;
 const { name, summary, status, category, repository } = project.data;
-const href = `/projects/${project.id}/`;
+const href = withBase(`/projects/${project.id}/`);
 const categoryLabel = CATEGORY_BY_KEY[category]?.label ?? category;
 ---
 

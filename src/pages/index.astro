@@ -10,6 +10,7 @@ import {
   FOUNDER,
 } from '../lib/site';
 import { CATEGORIES, SUPPORTING_PRIMITIVES } from '../lib/ecosystem';
+import { withBase } from '../lib/paths';
 import { formatDate } from '../lib/format';
 import { graph, websiteNode, personNode } from '../lib/schema';
 
@@ -120,10 +121,10 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
         controls what actually happens.
       </p>
       <div class="button-row hero__actions">
-        <a class="button button--primary" href="/architecture/">
+        <a class="button button--primary" href={withBase('/architecture/')}>
           Explore the architecture
         </a>
-        <a class="button" href="/projects/">View projects</a>
+        <a class="button" href={withBase('/projects/')}>View projects</a>
         <a class="button" href={SITE.github} rel="noopener" target="_blank">
           GitHub
         </a>
@@ -213,7 +214,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
           evidence. Each layer is implemented by open-source projects that can
           be inspected and replaced independently.
         </p>
-        <p><a href="/architecture/">Read the architecture →</a></p>
+        <p><a href={withBase('/architecture/')}>Read the architecture →</a></p>
       </div>
       <ArchitectureDiagram />
     </div>
@@ -226,7 +227,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
         {
           SUPPORTING_PRIMITIVES.map((primitive) => (
             <li>
-              <a href={primitive.href}>{primitive.label}</a>
+              <a href={withBase(primitive.href)}>{primitive.label}</a>
               <span class="supporting__note">{primitive.note}</span>
             </li>
           ))
@@ -251,7 +252,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
           ))
         }
       </ul>
-      <p class="section-more"><a href="/philosophy/">Read the philosophy →</a></p>
+      <p class="section-more"><a href={withBase('/philosophy/')}>Read the philosophy →</a></p>
     </div>
   </section>
 
@@ -277,7 +278,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
           </div>
         ))
       }
-      <p class="section-more"><a href="/projects/">All projects →</a></p>
+      <p class="section-more"><a href={withBase('/projects/')}>All projects →</a></p>
     </div>
   </section>
 
@@ -305,7 +306,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
             </p>
           )
         }
-        <p class="section-more"><a href="/milestones/">All milestones →</a></p>
+        <p class="section-more"><a href={withBase('/milestones/')}>All milestones →</a></p>
       </div>
 
       <div class="progress__column">
@@ -318,7 +319,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
                   <time datetime={entry.data.date.toISOString()}>
                     {formatDate(entry.data.date)}
                   </time>
-                  <a href={`/journal/${entry.id}/`}>{entry.data.title}</a>
+                  <a href={withBase(`/journal/${entry.id}/`)}>{entry.data.title}</a>
                 </li>
               ))}
             </ul>
@@ -328,7 +329,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
             </p>
           )
         }
-        <p class="section-more"><a href="/journal/">All journal entries →</a></p>
+        <p class="section-more"><a href={withBase('/journal/')}>All journal entries →</a></p>
       </div>
     </div>
   </section>
@@ -345,7 +346,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
           and released packages can be inspected directly rather than taken on
           trust.
         </p>
-        <p><a href="/evidence/">Selected technical evidence →</a></p>
+        <p><a href={withBase('/evidence/')}>Selected technical evidence →</a></p>
       </div>
       <ul class="evidence__links">
         <li>
@@ -394,7 +395,7 @@ const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
         systems, platform architecture, and integration systems, now applied to
         infrastructure for AI-assisted software.
       </p>
-      <p><a href="/about/">About {FOUNDER.name} →</a></p>
+      <p><a href={withBase('/about/')}>About {FOUNDER.name} →</a></p>
     </div>
   </section>
 </BaseLayout>

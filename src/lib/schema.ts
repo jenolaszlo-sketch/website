@@ -1,10 +1,12 @@
 import { URL } from 'node:url';
 import { SITE, FOUNDER } from './site';
+import { withBase } from './paths';
 
 type Site = URL | undefined;
 
 function abs(site: Site, path: string): string {
-  return site ? new URL(path, site).href : path;
+  const withBasePath = withBase(path);
+  return site ? new URL(withBasePath, site).href : withBasePath;
 }
 
 /**

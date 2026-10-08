@@ -1,5 +1,6 @@
 ---
 import { SITE, NAV } from '../lib/site';
+import { withBase } from '../lib/paths';
 
 const year = new Date().getFullYear();
 ---
@@ -18,7 +19,7 @@ const year = new Date().getFullYear();
       <ul class="site-footer__list">
         {
           NAV.map((item) => (
-            <li><a href={item.href}>{item.label}</a></li>
+            <li><a href={withBase(item.href)}>{item.label}</a></li>
           ))
         }
       </ul>

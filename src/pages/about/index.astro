@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageIntro from '../../components/PageIntro.astro';
 import WovenDivider from '../../components/WovenDivider.astro';
 import { SITE, FOUNDER } from '../../lib/site';
+import { withBase } from '../../lib/paths';
 import { graph, profilePageNode, personNode } from '../../lib/schema';
 
 const jsonLd = graph([
@@ -68,7 +69,7 @@ const jsonLd = graph([
             </li>
           )
         }
-        <li><a href="/evidence/">Technical evidence</a></li>
+        <li><a href={withBase('/evidence/')}>Technical evidence</a></li>
         <li>
           <a href={SITE.github} rel="noopener" target="_blank">
             Penghou repositories

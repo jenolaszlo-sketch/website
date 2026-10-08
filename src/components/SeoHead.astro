@@ -1,5 +1,6 @@
 ---
 import { SITE } from '../lib/site';
+import { withBase } from '../lib/paths';
 
 interface Props {
   title?: string;
@@ -18,10 +19,17 @@ const {
 } = Astro.props;
 
 const pageTitle = title ? `${title} — ${SITE.name}` : SITE.title;
+const rawPathname = Astro.url.pathname;
+const pathname =
+  rawPathname.endsWith('/') || /\.[a-z0-9]+$/i.test(rawPathname)
+    ? rawPathname
+    : `${rawPathname}/`;
 const canonical = Astro.site
-  ? new URL(Astro.url.pathname, Astro.site).href
-  : Astro.url.pathname;
-const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
+  ? new URL(pathname, Astro.site).href
+  : pathname;
+const ogImage = Astro.site
+  ? new URL(withBase(image), Astro.site).href
+  : withBase(image);
 ---
 
 <title>{pageTitle}</title>

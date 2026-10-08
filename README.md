@@ -184,7 +184,7 @@ The site also runs entirely locally with no Cloudflare dependency. A domain is
 not required for an initial deployment; a temporary `*.pages.dev` hostname is
 fine.
 
-## Canonical URL
+## Canonical URL and base path
 
 The canonical site URL is configurable and **not assumed in code**. It is read
 from the `SITE_URL` environment variable at build time (see
@@ -195,8 +195,16 @@ sitemap.
 SITE_URL=https://example.org npm run build
 ```
 
-Set `SITE_URL` in the Cloudflare Pages build environment. The default fallback
-is `https://penghou.pages.dev`. See `.env.example`.
+Sub-path deployments are supported through the optional `BASE_PATH` variable
+(default `/`). Internal links and assets are prefixed at render time, so no
+sub-path literal appears in content. For a GitHub project site:
+
+```bash
+SITE_URL=https://<user>.github.io BASE_PATH=/website npm run build
+```
+
+Set these in the Cloudflare Pages / GitHub Actions build environment. The
+default fallback is `https://penghou.pages.dev`. See `.env.example`.
 
 ## Design and accessibility
 

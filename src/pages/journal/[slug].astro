@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import WovenDivider from '../../components/WovenDivider.astro';
 import { formatDate } from '../../lib/format';
+import { withBase } from '../../lib/paths';
 import { graph, personNode, blogPostingNode, breadcrumbNode } from '../../lib/schema';
 
 export async function getStaticPaths() {
@@ -83,7 +84,7 @@ const jsonLd = graph([
       )
     }
 
-    <p class="article__back"><a href="/journal/">← All journal entries</a></p>
+    <p class="article__back"><a href={withBase('/journal/')}>← All journal entries</a></p>
   </article>
 </BaseLayout>
 

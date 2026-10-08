@@ -5,6 +5,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SeoHead from '../components/SeoHead.astro';
 import JsonLd from '../components/JsonLd.astro';
+import { withBase } from '../lib/paths';
 
 interface Props {
   title?: string;
@@ -30,7 +31,7 @@ const { title, description, image, imageAlt, type, jsonLd } = Astro.props;
       imageAlt={imageAlt}
       type={type}
     />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
     <meta name="generator" content={Astro.generator} />
     {jsonLd && <JsonLd schema={jsonLd} />}
   </head>
