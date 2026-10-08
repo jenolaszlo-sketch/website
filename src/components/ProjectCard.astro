@@ -1,0 +1,82 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { CATEGORY_BY_KEY } from '../lib/ecosystem';
+import ProjectStatus from './ProjectStatus.astro';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  showCategory?: boolean;
+}
+
+const { project, showCategory = true } = Astro.props;
+const { name, summary, status, category, repository } = project.data;
+const href = `/projects/${project.id}/`;
+const categoryLabel = CATEGORY_BY_KEY[category]?.label ?? category;
+---
+
+<article class="project-card">
+  <div class="project-card__head">
+    <h3 class="project-card__name">
+      <a href={href}>{name}</a>
+    </h3>
+    <ProjectStatus status={status} />
+  </div>
+  {showCategory && <p class="project-card__group eyebrow">{categoryLabel}</p>}
+  <p class="project-card__summary">{summary}</p>
+  <p class="project-card__links">
+    <a href={href}>Overview</a>
+    {
+      repository && (
+        <a href={repository} rel="noopener" target="_blank">
+          Repository
+        </a>
+      )
+    }
+  </p>
+</article>
+
+<style>
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    border: var(--border-thin) solid var(--color-line);
+    border-radius: var(--radius-md);
+  }
+
+  .project-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .project-card__name {
+    font-size: var(--text-xl);
+  }
+
+  .project-card__name a {
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .project-card__name a:hover {
+    color: var(--color-vermilion);
+  }
+
+  .project-card__summary {
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .project-card__links {
+    display: flex;
+    gap: var(--space-5);
+    margin-top: auto;
+    padding-top: var(--space-2);
+    font-size: var(--text-sm);
+  }
+</style>

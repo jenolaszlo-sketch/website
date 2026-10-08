@@ -1,0 +1,10 @@
+---
+interface Props {
+  schema: object;
+}
+
+const { schema } = Astro.props;
+const payload = JSON.stringify(schema).replace(/</g, '\\u003c');
+---
+
+<script type="application/ld+json" set:html={payload} />

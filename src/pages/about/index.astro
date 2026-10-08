@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import WovenDivider from '../../components/WovenDivider.astro';
+import { SITE, FOUNDER } from '../../lib/site';
+import { graph, profilePageNode, personNode } from '../../lib/schema';
+
+const jsonLd = graph([
+  profilePageNode(Astro.site),
+  personNode(Astro.site),
+]);
+---
+
+<BaseLayout
+  title={`${FOUNDER.name} — founder and principal engineer`}
+  description={`${FOUNDER.name} is the founder and principal engineer of Penghou, an independent open-source engineering project.`}
+  type="profile"
+  jsonLd={jsonLd}
+>
+  <PageIntro eyebrow="About" title={FOUNDER.name} lede={FOUNDER.role} />
+
+  <div class="container about">
+    <section class="about__section">
+      <h2 class="about__heading">Background</h2>
+      <div class="prose about__body">
+        <p>{FOUNDER.bio}</p>
+      </div>
+    </section>
+
+    <section class="about__section">
+      <h2 class="about__heading">Focus</h2>
+      <ul class="about__focus">
+        {FOUNDER.focus.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <section class="about__section">
+      <h2 class="about__heading">Why Penghou</h2>
+      <div class="prose about__body">
+        <p>
+          The goal is continuity rather than reinvention: applying long-standing
+          practice in distributed systems and software architecture to systems
+          in which probabilistic models participate. Penghou is an independent,
+          open-source engineering project. It is not a company with customers,
+          and it does not claim production adoption.
+        </p>
+        <p>
+          The work is public so that its architectural decisions and its
+          evidence can be inspected directly.
+        </p>
+      </div>
+    </section>
+
+    <WovenDivider label="Elsewhere" />
+
+    <section class="about__section">
+      <h2 class="about__heading visually-hidden">Links</h2>
+      <ul class="about__links">
+        <li>
+          <a href={FOUNDER.github} rel="me noopener" target="_blank">GitHub</a>
+        </li>
+        {
+          FOUNDER.linkedin && (
+            <li>
+              <a href={FOUNDER.linkedin} rel="me noopener" target="_blank">
+                LinkedIn
+              </a>
+            </li>
+          )
+        }
+        <li><a href="/evidence/">Technical evidence</a></li>
+        <li>
+          <a href={SITE.github} rel="noopener" target="_blank">
+            Penghou repositories
+          </a>
+        </li>
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about {
+    padding-bottom: var(--space-6);
+  }
+
+  .about__section + .about__section {
+    margin-top: var(--space-7);
+  }
+
+  .about__heading {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-3);
+  }
+
+  .about__body {
+    color: var(--color-ink-muted);
+  }
+
+  .about__focus {
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .about__focus li {
+    padding-left: var(--space-4);
+    border-left: var(--image-width) solid var(--color-vermilion);
+  }
+
+  .about__links {
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

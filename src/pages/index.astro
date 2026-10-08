@@ -1,0 +1,753 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
+import Principle from '../components/Principle.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import WovenDivider from '../components/WovenDivider.astro';
+import {
+  SITE,
+  FOUNDER,
+} from '../lib/site';
+import { CATEGORIES, SUPPORTING_PRIMITIVES } from '../lib/ecosystem';
+import { formatDate } from '../lib/format';
+import { graph, websiteNode, personNode } from '../lib/schema';
+
+const featured = (
+  await getCollection('projects', ({ data }) => !data.draft && data.featured)
+).sort((a, b) => a.data.order - b.data.order);
+
+const groupedProjects = new Map<string, typeof featured>();
+for (const project of featured) {
+  const bucket = groupedProjects.get(project.data.category) ?? [];
+  bucket.push(project);
+  groupedProjects.set(project.data.category, bucket);
+}
+
+const projectGroups = CATEGORIES.filter((category) =>
+  groupedProjects.has(category.key)
+).map((category) => ({
+  category,
+  projects: groupedProjects.get(category.key)!,
+}));
+
+const principles = (
+  await getCollection('philosophy', ({ data }) => !data.draft)
+).sort((a, b) => a.data.order - b.data.order);
+
+const milestones = (
+  await getCollection('milestones', ({ data }) => !data.draft)
+)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+
+const journal = (await getCollection('journal', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+
+const exampleSteps = [
+  {
+    title: 'A request arrives',
+    text: 'From a person, an API, or another system, with an intent rather than a fixed script.',
+    tag: null,
+  },
+  {
+    title: 'An agent proposes a workflow',
+    text: 'Which steps to run, in what order, with what inputs. The proposal is a plan, not an action.',
+    tag: 'Fuwen',
+  },
+  {
+    title: 'Authority checks the requested capabilities',
+    text: 'The exact identity of the work is checked against policy and explicit grants. If a capability is not granted, it stops here.',
+    tag: 'Hufu',
+  },
+  {
+    title: 'The durable engine executes the plan',
+    text: 'Steps run one at a time and are recorded, so execution can retry, restart, or resume after a crash.',
+    tag: 'Zhinu',
+  },
+  {
+    title: 'Sandboxed steps and model calls run inside that execution',
+    text: 'Operations that touch real resources run isolated, and inference steps call models through a provider-neutral boundary.',
+    tag: 'Gagamba · Baize',
+  },
+  {
+    title: 'Evidence is recorded',
+    text: 'What ran, what it produced, and what it changed, in a tamper-evident form someone else can check.',
+    tag: 'Siming',
+  },
+  {
+    title: 'A checkpoint exposes new information',
+    text: 'A result, a failure, or a decision that changes what the remaining work should be.',
+    tag: null,
+  },
+  {
+    title: 'The agent revises the remaining plan, and execution resumes',
+    text: 'Only the part that has not run can change. Completed work and its evidence stay as they are.',
+    tag: null,
+  },
+];
+
+const differences = [
+  {
+    title: 'The plan is explicit',
+    text: 'A workflow is compiled to an immutable plan with exact pins for tools, prompts, and model profiles, so it can be inspected before it runs.',
+  },
+  {
+    title: 'Authority is independent',
+    text: 'Permission is granted by a component the model does not control. A plan or fingerprint proves identity; it never grants power.',
+  },
+  {
+    title: 'Execution is durable and leaves evidence',
+    text: 'The workflow, not the model, owns retries and recovery, and each step records what happened for later inspection.',
+  },
+];
+
+const jsonLd = graph([websiteNode(Astro.site), personNode(Astro.site)]);
+---
+
+<BaseLayout jsonLd={jsonLd}>
+  <section class="hero">
+    <div class="container hero__inner">
+      <p class="eyebrow">Open-source AI systems infrastructure</p>
+      <h1 class="hero__title">
+        Infrastructure for agent-authored adaptive workflows.
+      </h1>
+      <p class="lede hero__lede">
+        Penghou lets a model design and revise a workflow while durable
+        execution, authority, evidence, and recovery stay outside the model.
+        The agent decides what should happen; deterministic infrastructure
+        controls what actually happens.
+      </p>
+      <div class="button-row hero__actions">
+        <a class="button button--primary" href="/architecture/">
+          Explore the architecture
+        </a>
+        <a class="button" href="/projects/">View projects</a>
+        <a class="button" href={SITE.github} rel="noopener" target="_blank">
+          GitHub
+        </a>
+      </div>
+      <p class="hero__note">Built in public since {SITE.builtSince}.</p>
+    </div>
+  </section>
+
+  <section class="section section--tight problem">
+    <div class="container problem__inner">
+      <h2 class="section-title">The problem</h2>
+      <div class="problem__text">
+        <p>
+          Most agent frameworks make the agent the runtime: the same
+          probabilistic component that decides what to do also holds the
+          schedule, the permissions, and the record of what happened.
+        </p>
+        <p>
+          That makes reliability, recovery, and auditability depend on the least
+          predictable part of the system. A retry can repeat a side effect, a
+          restart can lose the thread, and a summary of what happened is
+          produced by the same system being trusted.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <WovenDivider label="Approach" />
+
+  <section class="section section--tight">
+    <div class="container">
+      <h2 class="section-title">What is different</h2>
+      <ul class="differences">
+        {
+          differences.map((item) => (
+            <li class="difference">
+              <h3 class="difference__title">{item.title}</h3>
+              <p class="difference__text">{item.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="container example">
+      <div class="example__intro">
+        <h2 class="section-title">One workflow, end to end</h2>
+        <p class="lede example__lede">
+          The point is not to make the agent the runtime. It is to let the agent
+          decide what should happen while deterministic infrastructure controls
+          what actually happens. Here is the shape of a single run, before any
+          of the implementation terms.
+        </p>
+      </div>
+      <ol class="example__steps">
+        {
+          exampleSteps.map((step, i) => (
+            <li class="step">
+              <span class="step__index" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div class="step__body">
+                <h3 class="step__title">
+                  {step.title}
+                  {step.tag && <span class="step__tag">{step.tag}</span>}
+                </h3>
+                <p class="step__text">{step.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <WovenDivider label="Architecture" />
+
+  <section class="section section--tight">
+    <div class="container overview">
+      <div class="overview__intro">
+        <h2 class="section-title">A system of cooperating primitives</h2>
+        <p class="overview__text">
+          Penghou is not a single agent framework. It is a set of runtime layers
+          that separate reasoning from execution, authority, sandboxing, and
+          evidence. Each layer is implemented by open-source projects that can
+          be inspected and replaced independently.
+        </p>
+        <p><a href="/architecture/">Read the architecture →</a></p>
+      </div>
+      <ArchitectureDiagram />
+    </div>
+    <div class="container supporting">
+      <p class="supporting__lead">
+        Neutral contracts and reusable libraries support the runtime without
+        being stages in it:
+      </p>
+      <ul class="supporting__list">
+        {
+          SUPPORTING_PRIMITIVES.map((primitive) => (
+            <li>
+              <a href={primitive.href}>{primitive.label}</a>
+              <span class="supporting__note">{primitive.note}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <WovenDivider label="Philosophy" />
+
+  <section class="section section--tight">
+    <div class="container">
+      <h2 class="section-title">Principles</h2>
+      <ul class="principles">
+        {
+          principles.map((principle, i) => (
+            <Principle
+              index={i + 1}
+              title={principle.data.title}
+              summary={principle.data.summary}
+            />
+          ))
+        }
+      </ul>
+      <p class="section-more"><a href="/philosophy/">Read the philosophy →</a></p>
+    </div>
+  </section>
+
+  <WovenDivider label="Projects" />
+
+  <section class="section section--tight">
+    <div class="container">
+      <h2 class="section-title">Featured projects</h2>
+      <p class="section-lede">
+        The runtime backbone, grouped by the part of the system each project
+        owns. Evidence, memory, and supporting projects are on the projects
+        page.
+      </p>
+      {
+        projectGroups.map(({ category, projects }) => (
+          <div class="project-group">
+            <h3 class="project-group__title">{category.label}</h3>
+            <div class="project-grid">
+              {projects.map((project) => (
+                <ProjectCard project={project} showCategory={false} />
+              ))}
+            </div>
+          </div>
+        ))
+      }
+      <p class="section-more"><a href="/projects/">All projects →</a></p>
+    </div>
+  </section>
+
+  <WovenDivider label="Progress" />
+
+  <section class="section section--tight">
+    <div class="container progress">
+      <div class="progress__column">
+        <h2 class="section-title">Milestones</h2>
+        {
+          milestones.length > 0 ? (
+            <ol class="timeline">
+              {milestones.map((milestone) => (
+                <li class="timeline__item">
+                  <time class="timeline__date" datetime={milestone.data.date.toISOString()}>
+                    {formatDate(milestone.data.date)}
+                  </time>
+                  <span class="timeline__title">{milestone.data.title}</span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p class="empty">
+              Milestones will be recorded here as engineering work is completed.
+            </p>
+          )
+        }
+        <p class="section-more"><a href="/milestones/">All milestones →</a></p>
+      </div>
+
+      <div class="progress__column">
+        <h2 class="section-title">Journal</h2>
+        {
+          journal.length > 0 ? (
+            <ul class="journal-list">
+              {journal.map((entry) => (
+                <li class="journal-list__item">
+                  <time datetime={entry.data.date.toISOString()}>
+                    {formatDate(entry.data.date)}
+                  </time>
+                  <a href={`/journal/${entry.id}/`}>{entry.data.title}</a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="empty">
+              Engineering journal entries will appear here as they are written.
+            </p>
+          )
+        }
+        <p class="section-more"><a href="/journal/">All journal entries →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <WovenDivider label="Evidence" />
+
+  <section class="section section--tight">
+    <div class="container evidence">
+      <div>
+        <h2 class="section-title">Evidence over claims</h2>
+        <p class="overview__text">
+          The projects are open source and the runtime primitives are published
+          as versioned packages. Tests, samples, continuous integration, ADRs,
+          and released packages can be inspected directly rather than taken on
+          trust.
+        </p>
+        <p><a href="/evidence/">Selected technical evidence →</a></p>
+      </div>
+      <ul class="evidence__links">
+        <li>
+          <a href={SITE.github} rel="noopener" target="_blank">
+            Penghou on GitHub
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.nuget.org/packages/Penghou.Fuwen.Compiler"
+            rel="noopener"
+            target="_blank"
+          >
+            Fuwen on NuGet
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.nuget.org/packages/Penghou.Zhinu"
+            rel="noopener"
+            target="_blank"
+          >
+            Zhinu on NuGet
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.nuget.org/packages/Gagamba.Execution"
+            rel="noopener"
+            target="_blank"
+          >
+            Gagamba on NuGet
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section founder">
+    <div class="container founder__inner">
+      <p class="eyebrow">Founder</p>
+      <h2 class="founder__name">{FOUNDER.name}</h2>
+      <p class="founder__role">{FOUNDER.role}</p>
+      <p class="founder__bio">
+        Around {FOUNDER.years} years building production software, distributed
+        systems, platform architecture, and integration systems, now applied to
+        infrastructure for AI-assisted software.
+      </p>
+      <p><a href="/about/">About {FOUNDER.name} →</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: var(--space-9) var(--space-6);
+    border-bottom: var(--border-thin) solid var(--color-line);
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 2.75rem,
+      color-mix(in srgb, var(--color-line) 45%, transparent) 2.75rem,
+      color-mix(in srgb, var(--color-line) 45%, transparent) calc(2.75rem + 1px)
+    );
+  }
+
+  .hero__inner {
+    max-width: 54rem;
+  }
+
+  .hero__title {
+    margin-top: var(--space-4);
+    font-size: clamp(var(--text-2xl), 4.5vw, var(--text-3xl));
+    max-width: 22ch;
+  }
+
+  .hero__lede {
+    margin-top: var(--space-5);
+  }
+
+  .hero__actions {
+    margin-top: var(--space-6);
+  }
+
+  .hero__note {
+    margin-top: var(--space-5);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    color: var(--color-ink-muted);
+  }
+
+  .problem__inner {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .problem__text {
+    display: grid;
+    gap: var(--space-4);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+  }
+
+  .differences {
+    list-style: none;
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  .difference {
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: var(--image-width) solid var(--color-vermilion);
+  }
+
+  .difference__title {
+    font-size: var(--text-lg);
+  }
+
+  .difference__text {
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .example {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .example__lede {
+    margin-top: var(--space-4);
+  }
+
+  .example__steps {
+    list-style: none;
+    display: grid;
+    gap: var(--space-4);
+    counter-reset: step;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: var(--space-3);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-thin) solid var(--color-line);
+  }
+
+  .step__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.12em;
+    color: var(--color-vermilion);
+    padding-top: 0.35rem;
+  }
+
+  .step__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3);
+    font-size: var(--text-base);
+  }
+
+  .step__tag {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--color-ink-muted);
+  }
+
+  .step__text {
+    margin-top: var(--space-2);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .overview {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .overview__intro {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+
+  .overview__text {
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+  }
+
+  .supporting {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: var(--border-thin) solid var(--color-line);
+  }
+
+  .supporting__lead {
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-4);
+  }
+
+  .supporting__list {
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .supporting__list li {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .supporting__note {
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .section-lede {
+    margin-top: var(--space-3);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+  }
+
+  .principles {
+    list-style: none;
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  .project-group + .project-group {
+    margin-top: var(--space-7);
+  }
+
+  .project-group__title {
+    font-size: var(--text-base);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    margin-bottom: var(--space-4);
+  }
+
+  .project-grid {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: 1fr;
+  }
+
+  .progress {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .timeline {
+    list-style: none;
+    margin-top: var(--space-5);
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .timeline__item {
+    display: grid;
+    gap: var(--space-1);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-thin) solid var(--color-line);
+  }
+
+  .timeline__date,
+  .journal-list time {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-ink-muted);
+  }
+
+  .timeline__title {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+  }
+
+  .journal-list {
+    list-style: none;
+    margin-top: var(--space-5);
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .journal-list__item {
+    display: grid;
+    gap: var(--space-1);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-thin) solid var(--color-line);
+  }
+
+  .empty {
+    margin-top: var(--space-5);
+    color: var(--color-ink-muted);
+    font-style: italic;
+  }
+
+  .evidence {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .evidence__links {
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+
+  .evidence__links a {
+    font-size: var(--text-sm);
+  }
+
+  .founder {
+    border-top: var(--border-thin) solid var(--color-line);
+  }
+
+  .founder__inner {
+    max-width: var(--width-prose);
+  }
+
+  .founder__name {
+    margin-top: var(--space-3);
+    font-size: var(--text-2xl);
+  }
+
+  .founder__role {
+    margin-top: var(--space-2);
+    color: var(--color-vermilion);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .founder__bio {
+    margin-top: var(--space-4);
+    color: var(--color-ink-muted);
+  }
+
+  .section-more {
+    margin-top: var(--space-5);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 40rem) {
+    .project-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .principles,
+    .differences {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .supporting__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4) var(--space-6);
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .problem__inner {
+      grid-template-columns: 1fr 2fr;
+      gap: var(--space-8);
+      align-items: start;
+    }
+
+    .overview {
+      grid-template-columns: 1fr 1.1fr;
+      gap: var(--space-9);
+    }
+
+    .progress {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-9);
+    }
+
+    .evidence {
+      grid-template-columns: 1.5fr 1fr;
+      gap: var(--space-9);
+      align-items: start;
+    }
+
+    .differences {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .principles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,156 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import { formatDate } from '../../lib/format';
+
+const milestones = (
+  await getCollection('milestones', ({ data }) => !data.draft)
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const projects = await getCollection('projects', ({ data }) => !data.draft);
+const projectNames = new Map(projects.map((p) => [p.id, p.data.name]));
+
+const byYear = new Map<string, typeof milestones>();
+for (const milestone of milestones) {
+  const year = String(milestone.data.date.getUTCFullYear());
+  const bucket = byYear.get(year) ?? [];
+  bucket.push(milestone);
+  byYear.set(year, bucket);
+}
+
+const years = [...byYear.keys()].sort((a, b) => Number(b) - Number(a));
+---
+
+<BaseLayout
+  title="Milestones"
+  description="A curated, reverse-chronological record of engineering progress across the Penghou ecosystem."
+>
+  <PageIntro
+    eyebrow="Milestones"
+    title="A record of sustained engineering progress."
+    lede="Milestones are curated by hand rather than generated from commits. They capture releases, architectural decisions, experiments, qualification results, and important failures or discoveries."
+  />
+
+  <div class="container">
+    {
+      milestones.length === 0 ? (
+        <p class="empty">
+          No milestones have been published yet. They will appear here as work
+          is completed.
+        </p>
+      ) : (
+        years.map((year) => (
+          <section class="year">
+            <h2 class="year__label">{year}</h2>
+            <ol class="milestones">
+              {(byYear.get(year) ?? []).map((milestone) => (
+                <li class="milestone">
+                  <time
+                    class="milestone__date"
+                    datetime={milestone.data.date.toISOString()}
+                  >
+                    {formatDate(milestone.data.date)}
+                  </time>
+                  <div class="milestone__body">
+                    <h3 class="milestone__title">{milestone.data.title}</h3>
+                    {milestone.data.summary && (
+                      <p class="milestone__summary">{milestone.data.summary}</p>
+                    )}
+                    {milestone.data.projects.length > 0 && (
+                      <ul class="milestone__projects">
+                        {milestone.data.projects.map((slug) => (
+                          <li>
+                            <a href={`/projects/${slug}/`}>
+                              {projectNames.get(slug) ?? slug}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {milestone.data.evidence.length > 0 && (
+                      <ul class="milestone__evidence">
+                        {milestone.data.evidence.map((link) => (
+                          <li>
+                            <a href={link.url} rel="noopener" target="_blank">
+                              {link.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .empty {
+    color: var(--color-ink-muted);
+    font-style: italic;
+  }
+
+  .year + .year {
+    margin-top: var(--space-8);
+  }
+
+  .year__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: 0.14em;
+    color: var(--color-vermilion);
+    margin-bottom: var(--space-5);
+  }
+
+  .milestones {
+    list-style: none;
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .milestone {
+    display: grid;
+    gap: var(--space-2);
+    padding-left: var(--space-5);
+    border-left: var(--image-width) solid var(--color-line-strong);
+  }
+
+  .milestone__date {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-ink-muted);
+  }
+
+  .milestone__title {
+    font-size: var(--text-lg);
+  }
+
+  .milestone__summary {
+    margin-top: var(--space-2);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .milestone__projects,
+  .milestone__evidence {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .milestone__projects {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+</style>

@@ -1,0 +1,97 @@
+---
+import { SITE, NAV } from '../lib/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__brand">
+      <p class="site-footer__name">{SITE.name}</p>
+      <p class="site-footer__note">
+        An independent, open-source engineering project. Built in public since
+        {SITE.builtSince}.
+      </p>
+    </div>
+
+    <nav class="site-footer__nav" aria-label="Footer">
+      <ul class="site-footer__list">
+        {
+          NAV.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-footer__links">
+      <a href={SITE.github} rel="me noopener" target="_blank">GitHub</a>
+    </div>
+  </div>
+  <div class="container site-footer__legal">
+    <p>© {year} {SITE.founder}. Code licensed under Apache-2.0.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--space-9);
+    border-top: var(--border-thin) solid var(--color-line);
+    background-color: var(--color-paper-muted);
+    padding-block: var(--space-8) var(--space-5);
+  }
+
+  .site-footer__inner {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer__name {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+  }
+
+  .site-footer__note {
+    max-width: 40ch;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .site-footer__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    list-style: none;
+  }
+
+  .site-footer__list a,
+  .site-footer__links a {
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .site-footer__list a:hover,
+  .site-footer__links a:hover {
+    color: var(--color-vermilion);
+    text-decoration: underline;
+  }
+
+  .site-footer__legal {
+    margin-top: var(--space-7);
+    padding-top: var(--space-4);
+    border-top: var(--border-thin) solid var(--color-line);
+    color: var(--color-ink-muted);
+    font-size: var(--text-xs);
+  }
+
+  @media (min-width: 56rem) {
+    .site-footer__inner {
+      grid-template-columns: 1.4fr 1fr auto;
+      align-items: start;
+    }
+  }
+</style>

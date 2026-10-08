@@ -1,0 +1,73 @@
+---
+interface Props {
+  label?: string;
+}
+const { label } = Astro.props;
+---
+
+<div class="woven-divider" role="presentation">
+  <svg
+    class="woven-divider__svg"
+    viewBox="0 0 1200 28"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <line class="woven-divider__rule" x1="0" y1="14" x2="1200" y2="14"></line>
+    <path
+      class="woven-divider__thread"
+      d="M0 14 C 100 3, 200 25, 300 14 S 500 3, 600 14 S 800 25, 900 14 S 1100 3, 1200 14"
+    ></path>
+    <path
+      class="woven-divider__thread woven-divider__thread--alt"
+      d="M0 14 C 100 25, 200 3, 300 14 S 500 25, 600 14 S 800 3, 900 14 S 1100 25, 1200 14"
+    ></path>
+  </svg>
+  {label && <span class="woven-divider__label">{label}</span>}
+</div>
+
+<style>
+  .woven-divider {
+    position: relative;
+    margin-block: var(--space-8);
+  }
+
+  .woven-divider__svg {
+    width: 100%;
+    height: 28px;
+    color: var(--color-line-strong);
+  }
+
+  .woven-divider__rule {
+    stroke: var(--color-line);
+    stroke-width: 1;
+    opacity: 0.7;
+  }
+
+  .woven-divider__thread {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    opacity: 0.45;
+  }
+
+  .woven-divider__thread--alt {
+    stroke: var(--color-vermilion);
+    opacity: 0.32;
+  }
+
+  .woven-divider__label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding-inline: var(--space-3);
+    background-color: var(--color-paper);
+    color: var(--color-ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+</style>

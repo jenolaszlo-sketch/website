@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The requested page could not be found."
+>
+  <section class="notfound container">
+    <p class="eyebrow">404</p>
+    <h1 class="notfound__title">This page does not exist.</h1>
+    <p class="lede notfound__lede">
+      The page may have moved, or the link may be incorrect.
+    </p>
+    <div class="button-row">
+      <a class="button button--primary" href="/">Back to home</a>
+      <a class="button" href="/projects/">View projects</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .notfound {
+    padding-block: var(--space-9);
+    max-width: 40rem;
+  }
+
+  .notfound__title {
+    margin-top: var(--space-3);
+    font-size: var(--text-3xl);
+  }
+
+  .notfound__lede {
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+</style>

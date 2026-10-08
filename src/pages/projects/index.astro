@@ -1,0 +1,159 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { CATEGORIES, STATUSES } from '../../lib/ecosystem';
+
+const projects = (
+  await getCollection('projects', ({ data }) => !data.draft)
+).sort((a, b) => a.data.order - b.data.order);
+
+const grouped = new Map<string, typeof projects>();
+for (const project of projects) {
+  const bucket = grouped.get(project.data.category) ?? [];
+  bucket.push(project);
+  grouped.set(project.data.category, bucket);
+}
+
+const groups = CATEGORIES.filter((category) => grouped.has(category.key)).map(
+  (category) => ({ category, projects: grouped.get(category.key)! })
+);
+---
+
+<BaseLayout
+  title="Projects"
+  description="The open-source projects that make up the Penghou ecosystem, grouped by the part of the runtime they own."
+>
+  <PageIntro
+    eyebrow="Projects"
+    title="An ecosystem, not a pile of repositories."
+    lede="Each project owns one part of the runtime. Active components, supporting libraries, and parked work are kept distinct, and every status is meant to be read literally."
+  />
+
+  <div class="container">
+    <section class="legend" aria-labelledby="legend-title">
+      <h2 class="legend__title" id="legend-title">Status definitions</h2>
+      <dl class="legend__list">
+        {
+          STATUSES.map((status) => (
+            <div class="legend__item">
+              <dt>{status.label}</dt>
+              <dd>{status.description}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    {
+      groups.map(({ category, projects: groupProjects }) => (
+        <section class:list={['group', { 'group--parked': category.key === 'parked' }]}>
+          <h2 class="group__title">{category.label}</h2>
+          <p class="group__description">{category.description}</p>
+          <div class="grid">
+            {groupProjects.map((project) => (
+              <ProjectCard project={project} showCategory={false} />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .legend {
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-8);
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    border: var(--border-thin) solid var(--color-line);
+    border-radius: var(--radius-md);
+  }
+
+  .legend__title {
+    font-size: var(--text-base);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    margin-bottom: var(--space-4);
+  }
+
+  .legend__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .legend__item {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: var(--space-4);
+    align-items: baseline;
+  }
+
+  .legend__item dt {
+    font-weight: 600;
+    font-size: var(--text-sm);
+  }
+
+  .legend__item dd {
+    margin: 0;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .group + .group {
+    margin-top: var(--space-8);
+  }
+
+  .group--parked {
+    margin-top: var(--space-9);
+    padding-top: var(--space-7);
+    border-top: var(--border-thin) solid var(--color-line);
+  }
+
+  .group__title {
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .group__description {
+    margin-top: var(--space-2);
+    margin-bottom: var(--space-4);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 39.99rem) {
+    .legend__item {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

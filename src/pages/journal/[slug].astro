@@ -1,0 +1,149 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WovenDivider from '../../components/WovenDivider.astro';
+import { formatDate } from '../../lib/format';
+import { graph, personNode, blogPostingNode, breadcrumbNode } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('journal', ({ data }) => !data.draft);
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { title, description, date, updated, tags, evidence } = entry.data;
+const { Content } = await render(entry);
+const isoDate = date.toISOString();
+const path = `/journal/${entry.id}/`;
+
+const jsonLd = graph([
+  personNode(Astro.site),
+  blogPostingNode(Astro.site, { title, description, date, updated, path }),
+  breadcrumbNode(Astro.site, [
+    { name: 'Home', path: '/' },
+    { name: 'Journal', path: '/journal/' },
+    { name: title, path },
+  ]),
+]);
+---
+
+<BaseLayout title={title} description={description} type="article" jsonLd={jsonLd}>
+  <article class="container article">
+    <header class="article__head">
+      <p class="eyebrow">Journal</p>
+      <h1 class="article__title">{title}</h1>
+      <p class="lede article__description">{description}</p>
+      <p class="article__meta">
+        <time datetime={isoDate}>{formatDate(date)}</time>
+        {
+          updated && (
+            <>
+              {' · '}
+              <span>
+                Updated <time datetime={updated.toISOString()}>{formatDate(updated)}</time>
+              </span>
+            </>
+          )
+        }
+      </p>
+      {
+        tags.length > 0 && (
+          <ul class="article__tags">
+            {tags.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    <WovenDivider />
+
+    <div class="prose article__body">
+      <Content />
+    </div>
+
+    {
+      evidence.length > 0 && (
+        <aside class="article__evidence" aria-label="Evidence">
+          <h2 class="article__evidence-title">Evidence</h2>
+          <ul>
+            {evidence.map((link) => (
+              <li>
+                <a href={link.url} rel="noopener" target="_blank">
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )
+    }
+
+    <p class="article__back"><a href="/journal/">← All journal entries</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .article {
+    padding-top: var(--space-8);
+  }
+
+  .article__title {
+    margin-top: var(--space-3);
+    font-size: clamp(var(--text-3xl), 5vw, var(--text-4xl));
+    max-width: 24ch;
+  }
+
+  .article__description {
+    margin-top: var(--space-4);
+  }
+
+  .article__meta {
+    margin-top: var(--space-5);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-ink-muted);
+  }
+
+  .article__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-ink-muted);
+  }
+
+  .article__evidence {
+    margin-top: var(--space-7);
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    border: var(--border-thin) solid var(--color-line);
+    border-radius: var(--radius-md);
+    max-width: var(--width-prose);
+  }
+
+  .article__evidence-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-3);
+  }
+
+  .article__evidence ul {
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .article__back {
+    margin-top: var(--space-8);
+    font-size: var(--text-sm);
+  }
+</style>

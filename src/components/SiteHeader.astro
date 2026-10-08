@@ -1,0 +1,123 @@
+---
+import { SITE, NAV } from '../lib/site';
+
+const path = Astro.url.pathname;
+
+function isActive(href: string): boolean {
+  if (href === '/') return path === '/';
+  return path.startsWith(href.replace(/\/$/, ''));
+}
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="/" aria-label={`${SITE.name} home`}>
+      <span class="brand__seal" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="28" height="28" role="presentation">
+          <rect
+            x="1.5"
+            y="1.5"
+            width="29"
+            height="29"
+            rx="4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"></rect>
+          <path
+            d="M7 11.5h18M7 16h18M7 20.5h18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1"
+            opacity="0.85"></path>
+          <path
+            d="M12 7v18M20 7v18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1"
+            opacity="0.5"></path>
+        </svg>
+      </span>
+      <span class="brand__word">{SITE.name}</span>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary">
+      <ul class="site-nav__list">
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                class="site-nav__link"
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: var(--border-thin) solid var(--color-line);
+    background-color: var(--color-paper);
+  }
+
+  .site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
+    padding-block: var(--space-4);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .brand__seal {
+    color: var(--color-vermilion);
+    line-height: 0;
+  }
+
+  .brand__word {
+    font-family: var(--font-serif);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .site-nav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    list-style: none;
+  }
+
+  .site-nav__link {
+    display: inline-block;
+    padding-block: var(--space-1);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    border-bottom: var(--image-width) solid transparent;
+  }
+
+  .site-nav__link:hover {
+    color: var(--color-ink);
+  }
+
+  .site-nav__link[aria-current='page'] {
+    color: var(--color-ink);
+    border-bottom-color: var(--color-vermilion);
+  }
+</style>

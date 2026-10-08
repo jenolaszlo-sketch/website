@@ -1,0 +1,109 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import { formatDate } from '../../lib/format';
+
+const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+
+<BaseLayout
+  title="Journal"
+  description="Engineering journal: problems, experiments, findings, decisions, and evidence from building Penghou."
+>
+  <PageIntro
+    eyebrow="Developer journal"
+    title="Engineering decisions, written down."
+    lede="The journal records problems, experiments, findings, and the decisions that followed. It is not a generated commit log."
+  />
+
+  <div class="container">
+    {
+      entries.length === 0 ? (
+        <p class="empty">
+          The journal is empty for now. Entries will be published here as
+          engineering work is documented.
+        </p>
+      ) : (
+        <ul class="entries">
+          {entries.map((entry) => (
+            <li class="entry">
+              <time class="entry__date" datetime={entry.data.date.toISOString()}>
+                {formatDate(entry.data.date)}
+              </time>
+              <h2 class="entry__title">
+                <a href={`/journal/${entry.id}/`}>{entry.data.title}</a>
+              </h2>
+              <p class="entry__description">{entry.data.description}</p>
+              {entry.data.tags.length > 0 && (
+                <ul class="entry__tags">
+                  {entry.data.tags.map((tag) => (
+                    <li>{tag}</li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .empty {
+    color: var(--color-ink-muted);
+    font-style: italic;
+  }
+
+  .entries {
+    list-style: none;
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .entry {
+    padding-bottom: var(--space-6);
+    border-bottom: var(--border-thin) solid var(--color-line);
+    max-width: var(--width-prose);
+  }
+
+  .entry__date {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-ink-muted);
+  }
+
+  .entry__title {
+    margin-top: var(--space-2);
+    font-size: var(--text-xl);
+  }
+
+  .entry__title a {
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .entry__title a:hover {
+    color: var(--color-vermilion);
+  }
+
+  .entry__description {
+    margin-top: var(--space-3);
+    color: var(--color-ink-muted);
+  }
+
+  .entry__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-ink-muted);
+  }
+</style>

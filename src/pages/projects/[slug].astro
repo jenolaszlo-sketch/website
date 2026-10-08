@@ -1,0 +1,197 @@
+---
+import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectStatus from '../../components/ProjectStatus.astro';
+import { CATEGORY_BY_KEY, STATUS_BY_KEY } from '../../lib/ecosystem';
+import { SITE } from '../../lib/site';
+import { graph, personNode, softwareSourceCodeNode, breadcrumbNode } from '../../lib/schema';
+
+type Props = { entry: CollectionEntry<'projects'> };
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects', ({ data }) => !data.draft);
+  return projects.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry } satisfies Props,
+  }));
+}
+
+const { entry } = Astro.props;
+const { name, tagline, summary, status, category, repository, packages } =
+  entry.data;
+const { Content } = await render(entry);
+const categoryLabel = CATEGORY_BY_KEY[category]?.label ?? category;
+const statusLabel = STATUS_BY_KEY[status]?.label ?? status;
+const path = `/projects/${entry.id}/`;
+
+const jsonLd = graph([
+  personNode(Astro.site),
+  softwareSourceCodeNode(Astro.site, {
+    name,
+    tagline,
+    summary,
+    repository,
+    version: entry.data.version,
+    path,
+  }),
+  breadcrumbNode(Astro.site, [
+    { name: 'Home', path: '/' },
+    { name: 'Projects', path: '/projects/' },
+    { name, path },
+  ]),
+]);
+---
+
+<BaseLayout title={`${name} — ${tagline}`} description={summary} type="article" jsonLd={jsonLd}>
+  <article class="project container">
+    <header class="project__head">
+      <p class="eyebrow">{categoryLabel}</p>
+      <div class="project__title-row">
+        <h1 class="project__name">{name}</h1>
+        <ProjectStatus status={status} />
+      </div>
+      <p class="lede project__summary">{summary}</p>
+      <ul class="project__links">
+        {
+          repository && (
+            <li>
+              <a href={repository} rel="noopener" target="_blank">
+                Repository
+              </a>
+            </li>
+          )
+        }
+        {
+          packages.map((pkg) => (
+            <li>
+              <a
+                href={`https://www.nuget.org/packages/${pkg}`}
+                rel="noopener"
+                target="_blank"
+              >
+                {pkg}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href={SITE.github} rel="noopener" target="_blank">
+            All Penghou repositories
+          </a>
+        </li>
+      </ul>
+      <p class="project__statusline">
+        <span class="project__status-label">{statusLabel}</span>
+        {' — '}
+        {STATUS_BY_KEY[status]?.description}
+      </p>
+    </header>
+
+    <div class="prose project__body">
+      <Content />
+    </div>
+
+    {
+      entry.data.evidence.length > 0 && (
+        <aside class="project__evidence" aria-labelledby="evidence-title">
+          <h2 class="project__evidence-title" id="evidence-title">
+            Evidence and artifacts
+          </h2>
+          <ul>
+            {entry.data.evidence.map((link) => (
+              <li>
+                <a href={link.url} rel="noopener" target="_blank">
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )
+    }
+
+    <p class="project__back"><a href="/projects/">← All projects</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .project {
+    padding-top: var(--space-8);
+  }
+
+  .project__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+  }
+
+  .project__name {
+    font-size: clamp(var(--text-3xl), 5vw, var(--text-4xl));
+  }
+
+  .project__summary {
+    margin-top: var(--space-4);
+  }
+
+  .project__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    margin-top: var(--space-5);
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .project__links a {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.03em;
+  }
+
+  .project__statusline {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: var(--border-thin) solid var(--color-line);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .project__status-label {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+
+  .project__body {
+    margin-top: var(--space-7);
+  }
+
+  .project__evidence {
+    margin-top: var(--space-7);
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    border: var(--border-thin) solid var(--color-line);
+    border-radius: var(--radius-md);
+    max-width: var(--width-prose);
+  }
+
+  .project__evidence-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-3);
+  }
+
+  .project__evidence ul {
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .project__back {
+    margin-top: var(--space-8);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,211 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import ArchitectureDiagram from '../../components/ArchitectureDiagram.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import {
+  CATEGORIES,
+  SUPPORTING_PRIMITIVES,
+} from '../../lib/ecosystem';
+
+const projects = (
+  await getCollection('projects', ({ data }) => !data.draft)
+).sort((a, b) => a.data.order - b.data.order);
+
+const grouped = new Map<string, typeof projects>();
+for (const project of projects) {
+  const bucket = grouped.get(project.data.category) ?? [];
+  bucket.push(project);
+  grouped.set(project.data.category, bucket);
+}
+
+const groups = CATEGORIES.filter((category) => grouped.has(category.key)).map(
+  (category) => ({ category, projects: grouped.get(category.key)! })
+);
+---
+
+<BaseLayout
+  title="Architecture"
+  description="How Penghou separates planning, workflow definition, durable execution, authority, sandboxing, and evidence into cooperating runtime layers."
+>
+  <PageIntro
+    eyebrow="Architecture"
+    title="Reasoning on top; guarantees underneath."
+    lede="Penghou is a layered runtime. A model can plan and adapt at the top, but durability, authority, sandboxing, and evidence are enforced by layers the model does not control. This page describes the runtime first, then the projects that implement it."
+  />
+
+  <div class="container">
+    <ArchitectureDiagram />
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">The execution path</h2>
+      <p class="lede arch-lede">
+        An authored workflow is compiled to an immutable plan. The host admits
+        that exact identity against policy and finite grants. Only then does
+        durable execution begin, with model calls and sandboxed operations
+        recorded as evidence.
+      </p>
+      <pre class="path" aria-label="Execution path"><code>.fuwen source
+    → bounded compiler and semantic validation
+    → immutable canonical plan and execution fingerprint
+    → host admission (policy, catalogue, grants)
+    → durable execution with sandboxed activities
+    → durable evidence and provenance</code></pre>
+      <p class="arch-note">
+        Planning sits above this path rather than inside it. Between reasoning
+        checkpoints, execution is deterministic: the same recorded state leads
+        to the same next step.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="container">
+      <h2 class="section-title">Supporting primitives</h2>
+      <p class="section-lede">
+        These libraries support the runtime without being stages in it. They are
+        neutral enough to be used on their own.
+      </p>
+      <ul class="supporting">
+        {
+          SUPPORTING_PRIMITIVES.map((primitive) => (
+            <li>
+              <h3 class="supporting__name">
+                <a href={primitive.href}>{primitive.label}</a>
+              </h3>
+              <p class="supporting__note">{primitive.note}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="container">
+      <h2 class="section-title">Project map</h2>
+      <p class="section-lede">
+        Every project belongs to one capability. Statuses are shown honestly;
+        parked work is kept separate.
+      </p>
+      {
+        groups.map(({ category, projects: groupProjects }) => (
+          <div class="arch-group">
+            <h3 class="arch-group__title">{category.label}</h3>
+            <p class="arch-group__description">{category.description}</p>
+            <div class="arch-grid">
+              {groupProjects.map((project) => (
+                <ProjectCard project={project} showCategory={false} />
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .arch-lede {
+    margin-top: var(--space-4);
+  }
+
+  .path {
+    margin-top: var(--space-5);
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    border: var(--border-thin) solid var(--color-line);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--color-ink-muted);
+  }
+
+  .arch-note {
+    margin-top: var(--space-4);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .section-lede {
+    margin-top: var(--space-3);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+  }
+
+  .supporting {
+    list-style: none;
+    display: grid;
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+  }
+
+  .supporting__name {
+    font-size: var(--text-lg);
+  }
+
+  .supporting__name a {
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .supporting__name a:hover {
+    color: var(--color-vermilion);
+  }
+
+  .supporting__note {
+    margin-top: var(--space-2);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .arch-group + .arch-group {
+    margin-top: var(--space-7);
+  }
+
+  .arch-group__title {
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    margin-top: var(--space-6);
+  }
+
+  .arch-group__description {
+    margin-top: var(--space-2);
+    margin-bottom: var(--space-4);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .arch-grid {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 40rem) {
+    .arch-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .supporting {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-5) var(--space-7);
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .arch-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

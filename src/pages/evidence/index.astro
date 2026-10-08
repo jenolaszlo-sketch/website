@@ -1,0 +1,176 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import { SITE } from '../../lib/site';
+import { graph, breadcrumbNode } from '../../lib/schema';
+
+const studies = (await getCollection('evidence', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const projects = await getCollection('projects', ({ data }) => !data.draft);
+const projectNames = new Map(projects.map((p) => [p.id, p.data.name]));
+
+const KINDS = [
+  {
+    key: 'released',
+    label: 'Released',
+    description: 'Published as versioned packages on NuGet.',
+  },
+  {
+    key: 'demonstrated',
+    label: 'Demonstrated',
+    description:
+      'Runnable behaviour with tests or samples in the repository, exercised in CI.',
+  },
+  {
+    key: 'validated',
+    label: 'Experimentally validated',
+    description:
+      'A narrow experiment, qualification, or live proof. Real, but not yet productised.',
+  },
+  {
+    key: 'planned',
+    label: 'Planned',
+    description: 'Documented roadmap work with no artifact behind it yet.',
+  },
+];
+
+const groups = KINDS.map((kind) => ({
+  kind,
+  items: studies.filter((study) => study.data.kind === kind.key),
+})).filter((group) => group.items.length > 0);
+
+const jsonLd = graph([
+  breadcrumbNode(Astro.site, [
+    { name: 'Home', path: '/' },
+    { name: 'Evidence', path: '/evidence/' },
+  ]),
+]);
+---
+
+<BaseLayout
+  title="Evidence"
+  description="Selected technical evidence for Penghou, separated into released, demonstrated, experimentally validated, and planned work."
+  jsonLd={jsonLd}
+>
+  <PageIntro
+    eyebrow="Evidence"
+    title="What has actually been built."
+    lede="This page separates released packages, demonstrated behaviour, narrow experiments, and planned work, so an engineer or hiring manager can tell them apart. Items link to primary artifacts: packages, source, tests, samples, and qualification records. Items with no artifact are marked as planned rather than dressed up as results."
+  />
+
+  <div class="container">
+    {
+      groups.map(({ kind, items }) => (
+        <section class="kind">
+          <header class="kind__head">
+            <h2 class="kind__title">{kind.label}</h2>
+            <p class="kind__description">{kind.description}</p>
+          </header>
+          <ul class="items">
+            {items.map((study) => (
+              <li class="item">
+                <h3 class="item__title">{study.data.title}</h3>
+                <p class="item__summary">{study.data.summary}</p>
+                {study.data.projects.length > 0 && (
+                  <ul class="item__projects">
+                    {study.data.projects.map((slug) => (
+                      <li>
+                        <a href={`/projects/${slug}/`}>
+                          {projectNames.get(slug) ?? slug}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {study.data.links.length > 0 && (
+                  <ul class="item__links">
+                    {study.data.links.map((link) => (
+                      <li>
+                        <a href={link.url} rel="noopener" target="_blank">
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    <p class="links">
+      <a href={SITE.github} rel="noopener" target="_blank">
+        Browse the source on GitHub →
+      </a>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .kind + .kind {
+    margin-top: var(--space-8);
+  }
+
+  .kind__title {
+    font-size: var(--text-xl);
+  }
+
+  .kind__description {
+    margin-top: var(--space-2);
+    max-width: var(--measure);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .items {
+    list-style: none;
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-5);
+  }
+
+  .item {
+    padding-top: var(--space-4);
+    border-top: var(--image-width) solid var(--color-vermilion);
+    max-width: var(--width-prose);
+  }
+
+  .item__title {
+    font-size: var(--text-lg);
+  }
+
+  .item__summary {
+    margin-top: var(--space-2);
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
+  }
+
+  .item__projects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .item__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-3);
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .links {
+    margin-top: var(--space-8);
+    font-size: var(--text-sm);
+  }
+</style>

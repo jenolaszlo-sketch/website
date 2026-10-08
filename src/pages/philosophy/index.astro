@@ -1,0 +1,66 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import WovenDivider from '../../components/WovenDivider.astro';
+
+const principles = (
+  await getCollection('philosophy', ({ data }) => !data.draft)
+).sort((a, b) => a.data.order - b.data.order);
+
+const rendered = await Promise.all(
+  principles.map(async (entry) => ({
+    entry,
+    Content: (await render(entry)).Content,
+  }))
+);
+---
+
+<BaseLayout
+  title="Philosophy"
+  description="The architectural thinking behind Penghou: models reason while infrastructure governs execution, authority, and evidence."
+>
+  <PageIntro
+    eyebrow="Philosophy"
+    title="The architecture reflects a set of deliberate choices."
+    lede="Penghou treats probabilistic reasoning as a participant in a system, not as the system itself. These principles explain that position. They are architectural choices and observations, not universal truths."
+  />
+
+  <div class="container">
+    {
+      rendered.map(({ entry, Content }, i) => (
+        <>
+          {i > 0 && <WovenDivider />}
+          <article class="principle-block">
+            <p class="principle-block__index eyebrow">
+              {String(i + 1).padStart(2, '0')}
+            </p>
+            <h2 class="principle-block__title">{entry.data.title}</h2>
+            <div class="prose principle-block__body">
+              <Content />
+            </div>
+          </article>
+        </>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .principle-block {
+    max-width: var(--width-prose);
+  }
+
+  .principle-block__index {
+    margin-bottom: var(--space-2);
+  }
+
+  .principle-block__title {
+    font-size: var(--text-2xl);
+  }
+
+  .principle-block__body {
+    margin-top: var(--space-4);
+    color: var(--color-ink-muted);
+  }
+</style>

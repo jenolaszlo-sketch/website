@@ -1,0 +1,58 @@
+---
+import { STATUS_BY_KEY } from '../lib/ecosystem';
+import type { Status } from '../lib/ecosystem';
+
+interface Props {
+  status: Status;
+}
+
+const { status } = Astro.props;
+const definition = STATUS_BY_KEY[status];
+---
+
+<span class={`status status--${status}`}>
+  <span class="status__marker" aria-hidden="true"></span>
+  <span class="status__label">{definition.label}</span>
+</span>
+
+<style>
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.15rem var(--space-3);
+    border: var(--border-thin) solid var(--color-line-strong);
+    border-radius: 999px;
+    color: var(--color-ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .status__marker {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--color-ink-muted);
+  }
+
+  .status--preview .status__marker {
+    background-color: var(--color-vermilion);
+  }
+
+  .status--stable .status__marker {
+    background-color: var(--color-ink);
+  }
+
+  .status--experimental .status__marker,
+  .status--prototype .status__marker {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--color-ink-muted);
+  }
+
+  .status--parked .status__marker {
+    background-color: var(--color-line-strong);
+  }
+</style>
